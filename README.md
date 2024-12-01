@@ -5,4 +5,4 @@ MREN 318 Fall 2024 - Final Project
 
 
 ## Software Demonstration
-<iframe width="560" height="315" src="https://www.youtube.com/embed/ULbh-ibkO7Q?si=Bczq3GdYxfxQBKud" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/ULbh-ibkO7Q/0.jpg)](http://www.youtube.com/watch?v=ULbh-ibkO7Q "MREN 318 - Pet Feeder Demo Speedrun")
