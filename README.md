@@ -1,5 +1,5 @@
 # Autonomous Pet Feeder
-MREN 318 Fall 2024 - Final Project
+MREN 318 (Sensors and Actuators) Fall 2024 - Final Project
 
 ### Contributors
 Mechanical Design - [Ethan Varkul](https://www.linkedin.com/in/ethanvarkul) and [Will Steedman](https://www.linkedin.com/in/will-steedman)
