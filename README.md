@@ -3,6 +3,7 @@ MREN 318 Fall 2024 - Final Project
 
 ### Contributors
 Mechanical Design - [Ethan Varkul](https://www.linkedin.com/in/ethanvarkul) and [Will Steedman](https://www.linkedin.com/in/will-steedman)
+
 Software Design - [Sabrina Button](https://sabrinabutton.ca)
 
 ## File Overview
