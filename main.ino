@@ -85,8 +85,8 @@ double minDelay = 400;
 double maxDelay = 900;
 
 // Web configuration
-char ssid[] = "BELL390"; 
-char pass[] = "4C253D7ED313";
+char ssid[] = "your-wifi"; 
+char pass[] = "your-password";
 
 int keyIndex = 0;                 // your network key Index number (needed only for WEP)
 int status = WL_IDLE_STATUS;
@@ -137,6 +137,7 @@ void setup()
   pinMode(TRIGGER, OUTPUT);
   pinMode(STEPPER_THRUST, OUTPUT);
   pinMode(STEPPER_DIR, OUTPUT);
+  digitalWrite(STEPPER_DIR,HIGH);
 
   // Initialize servo motor
   bowl_extension_servo.attach(6);
@@ -209,7 +210,7 @@ void setup()
 
   // Ensure bowl is retracted.
   Serial.println("Retracting bowl");
-  bowl_extension_servo.write(0);
+  bowl_extension_servo.write(35);
   extended = false;
   Serial.println("Complete setup complete.");
 }
@@ -220,9 +221,7 @@ void setup()
 
 void loop()
 {
-  // Put limit switches in loop mode
-  extended_bowl_ls.loop();
-  retracted_bowl_ls.loop();
+
 
   // Hold ultrasonic distance
   int us_distance = 0;
@@ -246,12 +245,12 @@ void loop()
 
     if (us_distance < 50) 
     {
-      sensed_cycle_count++; // We need to see something close for 5 consecutive cycles or else it could be a fluke
+      sensed_cycle_count++; // We need to see something close for 2 consecutive cycles or else it could be a fluke
     } else {
       sensed_cycle_count = 0;
     }
 
-    if(sensed_cycle_count >= 5){
+    if(sensed_cycle_count >= 2){
       sensed_cycle_count = 0; // Reset sensed cycle count
       system_state = SENSED_MOVEMENT;
       Serial.println("System sensed an animal, switching to SENSED_MOVEMENT state.");
@@ -288,7 +287,7 @@ void loop()
           Serial.println("Your pet is not an imposter! Moving to FILLING_BOWL state.");
         } else {
           system_state = IDLE;
-          Serial.println("Seems that we spotted an imposter. Returning to IDLE state.")
+          Serial.println("Seems that we spotted an imposter. Returning to IDLE state.");
         }
         
         img_sent = false; // Reset the image sent flag
@@ -304,12 +303,6 @@ void loop()
 
     else
     {
-      if (extended_bowl_ls.isPressed()) // We hit the extension limit switch
-      {
-        Serial.println("Bowl extended.");
-        extended = true;
-      }
-
       if(!extended){
         // Push bowl out to the pet
         extendBowl();
@@ -326,12 +319,6 @@ void loop()
   case BOWL_EXTENDED:
     if ( (millis() / 60000 - time_start) >= meal_duration_mins ) // If meal time is over
     {
-      // Retract the bowl
-      if (retracted_bowl_ls.isPressed()){
-        Serial.println("Bowl retracted.");
-        extended = false;
-      }
-
       if(extended){
         retractBowl();
       }
@@ -424,15 +411,15 @@ void calibrate() // Saves the current hopper depth as zero depth, puts everythin
 // Extend the bowl to the pet using a servo,
 void extendBowl()
 {
-  bowl_extension_servo.write(servo_angle);
-  servo_angle += 10;
+  bowl_extension_servo.write(179);
+  extended = true;
 }
 
 // Retract the bowl back to the feeder using a servo
 void retractBowl()
 {
-  bowl_extension_servo.write(servo_angle);
-  servo_angle -= 10;
+  bowl_extension_servo.write(35);
+  extended = false;
 }
 
 // ================================ STEPPER FUNCTIONS =======================================
@@ -477,10 +464,9 @@ void runAtPercentMaxSpeed(double percentage, double duration){
 void resetArduCAM() {
   Serial.println("Resetting ArduCAM...");
   myCAM.write_reg(ARDUCHIP_MODE, 0x00);  // Reset the camera
-  myCAM.set_format(JPEG);
-  myCAM.InitCAM();
-  myCAM.OV2640_set_JPEG_size(OV2640_640x480); // Set resolution to 160x120
+
   Serial.println("ArduCAM reset complete.");
+
 }
 
 // Captures a FIFO image with the ArduCam, and sends bytes in batches to a remote Flask server. The flask server hosts a small CNN that can recognize cats or dogs.
@@ -492,6 +478,8 @@ bool captureAndSendImage() {
   myCAM.flush_fifo();          // Clear the FIFO buffer
   myCAM.clear_fifo_flag();     // Clear the FIFO flags
   myCAM.start_capture();
+  while ( !myCAM.get_bit(ARDUCHIP_TRIG, CAP_DONE_MASK));
+
   int length = myCAM.read_fifo_length();
   Serial.print("Image Length: ");
   Serial.println(length);
@@ -501,13 +489,13 @@ bool captureAndSendImage() {
     return false;
   }
 
-  if (cv_client.connect("192.168.2.66", port)) {
+  if (cv_client.connect("172.20.10.7", port)) {
     Serial.println("Connected to server");
 
     // Send HTTP POST headers
     cv_client.println("POST /upload HTTP/1.1");
     cv_client.print("Host: ");
-    cv_client.println(ip_address);
+    cv_client.println("172.20.10.7");
     cv_client.println("Content-Type: application/octet-stream");
     cv_client.print("Content-Length: ");
     cv_client.println(length + 3); // Image size + EOF flag
@@ -639,12 +627,15 @@ void handleServer(){
                         Serial.println(result); 
 
                         // Set global variable for pet type based on result
-                        if(result == "any"){
+                        if(result[0] == 'a'){
                           pet_type = ANY;
-                        } else if(result == "dog"){
+                          Serial.println("Pet type is now ANY.");
+                        } else if(result[0] == 'd'){
                           pet_type = DOG;
+                          Serial.println("Pet type is now DOG.");
                         } else{
                           pet_type = CAT;
+                          Serial.println("Pet type is now CAT.");
                         }
 
                       } else{
@@ -851,7 +842,7 @@ void handleServer(){
                         client.println("<img src=\"https://i.imgur.com/aOcJEUp.png\" alt=\"Logo\"><br/>");
 
                         // Flexbox container
-                        client.println("<div style='display: flex; justify-content: space-between; width: 70%; align-items: stretch;'>");
+                        client.println("<div style='display: flex; justify-content: space-between; width: 100%; align-items: stretch;'>");
 
                         // Calibration Section
                         client.println("<div class=\"content-box\">");
@@ -972,7 +963,7 @@ void forceDispense(){
 // In override mode, force the bowl to push in
 void pushIn(){
   Serial.println("Pushing in.");
-  bowl_extension_servo.write(0);
+  bowl_extension_servo.write(35);
   extended = false;
   
 }
@@ -980,7 +971,7 @@ void pushIn(){
 // In override mode, force the bowl to push out
 void pushOut(){
   Serial.println("Pushing out.");
-  bowl_extension_servo.write(180);
+  bowl_extension_servo.write(179);
   extended = true;
 }
 
@@ -991,7 +982,7 @@ void GetAllSwitchStates(WiFiClient cl) {
     String response = "";
 
     // Append state for each switch separated by '/'
-    response += !extended ? "SECURED" : (extended_bowl_ls.isPressed() ? "EXTENDED" : "IN TRANSIT");
+    response += !extended ? "SECURED" : "EXTENDED";
     response += "/";
 
     // Bottom out the duration remaining to zero minutes 
