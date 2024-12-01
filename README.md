@@ -14,7 +14,7 @@ Software Design - [Sabrina Button](https://sabrinabutton.ca)
 ## CAD Renderings
 ![Complete Render](cad_renderings/complete_render.JPG)
 ![Mechanisms Cross Section](cad_renderings/mechanism_cross_section.jpg)
-![Secured Bowl](cad_renderings/secured_bowl.jpg)
+![Secured Bowl](cad_renderings/secured_bowl.JPG)
 ![Deconstructed](cad_renderings/deconstruction.jpg)
 ![Safety Covers](cad_renderings/safety_covers.jpg)
 
